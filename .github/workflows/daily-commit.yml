@@ -1,21 +1,12 @@
 name: Daily Commit
 
-on:
-  schedule:
-    # Runs every day at 07:30 UTC (choose any fixed hour/minute you prefer)
-    - cron: "30 7 * * *"
-  workflow_dispatch:  # allows manual trigger for testing
-
-jobs:
-  commit:name: Daily Commit
-
-on:
-  schedule:
-    - cron: '30 5 * * *' # runs every day at 05:30 UTC
-  workflow_dispatch:
-
 permissions:
-  contents: write  # ✅ REQUIRED to allow pushing commits
+  contents: write  # allow pushing commits
+
+on:
+  schedule:
+    - cron: '30 5 * * *' # runs daily at 05:30 UTC
+  workflow_dispatch:
 
 jobs:
   daily-commit:
@@ -28,23 +19,6 @@ jobs:
       - name: Add timestamp file 23f3002144@ds.study.iitm.ac.in
         run: |
           echo "Last run: $(date)" > last_run.txt
-
-      - name: Commit and push changes
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add last_run.txt
-          git commit -m "Automated daily commit [skip ci]" || echo "No changes to commit"
-          git push
-
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Make a change (23f3002144@ds.study.iitm.ac.in)
-        run: |
-          echo "Last run: $(date -u)" > last_run.txt
 
       - name: Commit and push changes
         run: |
