@@ -40,7 +40,7 @@ def get_country_outline(country: str = Query(..., description="Name of the count
     if not headings:
         raise HTTPException(status_code=404, detail="No headings found on the page")
 
-    # Final Markdown structure
+    # Markdown outline
     markdown_lines = [f"## Contents", f"# {country}"]
     skip_titles = {"contents", "see also", "references", "external links"}
 
@@ -49,6 +49,8 @@ def get_country_outline(country: str = Query(..., description="Name of the count
         if not title or title.lower() in skip_titles:
             continue
         level = int(tag.name[1])
-        markdown_lines.append(f"{'#' * (level + 1)} {title}")  # shift all headings up by 1
+        # Force minimum level 2 for all extracted headings
+        level = max(2, level)
+        markdown_lines.append(f"{'#' * level} {title}")
 
     return "\n\n".join(markdown_lines)
