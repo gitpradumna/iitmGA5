@@ -42,7 +42,7 @@ def get_country_outline(country: str = Query(..., description="Name of the count
 
     # # Generate Markdown outline (shift all levels up by 1)
     # markdown_lines = [f"## {country}", "### Contents"]
-    markdown_lines = [f"### Contents", f"## {country}"]
+    markdown_lines = [f"## Contents", f"### {country}"]
     skip_titles = {"contents", "see also", "references", "external links"}
 
     for tag in headings:
@@ -53,5 +53,6 @@ def get_country_outline(country: str = Query(..., description="Name of the count
         markdown_lines.append(f"{'#' * level} {title}")
 
     return "\n\n".join(markdown_lines)
+
 
 
