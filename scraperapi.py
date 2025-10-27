@@ -26,22 +26,42 @@ def get_country_outline(country: str = Query(..., description="Name of the count
 
     # Fetch Wikipedia page with User-Agent
     headers = {"User-Agent": "Mozilla/5.0 (compatible; OutlineBot/1.0)"}
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, allow_redirects=True)
+
     if response.status_code != 200:
         raise HTTPException(status_code=404, detail="Wikipedia page not found")
 
-    # Parse HTML and extract headings
+    # Parse HTML
     soup = BeautifulSoup(response.text, "html.parser")
     content = soup.find("div", {"id": "bodyContent"})
     if not content:
         raise HTTPException(status_code=500, detail="Failed to parse Wikipedia content")
 
+    # ✅ Get canonical Wikipedia article title
+    title_tag = soup.find("h1", id="firstHeading")
+    if title_tag:
+        country_display = title_tag.get_text(strip=True)
+    else:
+        country_display = country.replace("_", " ").title()
+
+    # ✅ Detect redirects
+    redirected_from = None
+    redirected_note = soup.find("li", id="ca-nstab-main")
+    if response.url != url:
+        redirected_from = country.replace("_", " ").title()
+
+    # Extract all headings
     headings = content.find_all(["h1", "h2", "h3", "h4", "h5", "h6"])
     if not headings:
         raise HTTPException(status_code=404, detail="No headings found on the page")
 
     # Markdown outline
-    markdown_lines = [f"## Contents", f"# {country}"]
+    markdown_lines = ["## Contents", f"# {country_display}"]
+
+    # Add redirect note if applicable
+    if redirected_from and redirected_from.lower() != country_display.lower():
+        markdown_lines.append(f"_Redirected from: **{redirected_from}**_")
+
     skip_titles = {"contents",}
 
     for tag in headings:
@@ -54,4 +74,3 @@ def get_country_outline(country: str = Query(..., description="Name of the count
         markdown_lines.append(f"{'#' * level} {title}")
 
     return "\n\n".join(markdown_lines)
-
