@@ -20,7 +20,7 @@ def get_country_outline(country: str = Query(..., description="Name of the count
     if not country:
         raise HTTPException(status_code=400, detail="Country name cannot be empty")
 
-    # Format country name for Wikipedia URL
+    # Format Wikipedia URL
     country_title = country.replace(" ", "_")
     url = f"https://en.wikipedia.org/wiki/{country_title}"
 
@@ -40,14 +40,15 @@ def get_country_outline(country: str = Query(..., description="Name of the count
     if not headings:
         raise HTTPException(status_code=404, detail="No headings found on the page")
 
-    # Filter and format headings
+    # Generate Markdown outline (shift all levels up by 1)
+    markdown_lines = [f"## {country}", "### Contents"]
     skip_titles = {"contents", "see also", "references", "external links"}
-    markdown_lines = [f"# {country}", "## Contents"]
+
     for tag in headings:
         title = tag.get_text(strip=True)
         if not title or title.lower() in skip_titles:
             continue
-        level = int(tag.name[1])
+        level = int(tag.name[1]) + 1  # Shift heading level up by 1
         markdown_lines.append(f"{'#' * level} {title}")
 
     return "\n\n".join(markdown_lines)
